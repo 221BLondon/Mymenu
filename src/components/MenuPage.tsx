@@ -1,8 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { MenuItem } from '../App';
 import { ChevronDown } from 'lucide-react';
-import MenuCard from './MenuCard';
 import MenuModal from './MenuModal';
+import MenuCard from './MenuCard';
+
+interface MenuPageProps {
+  addToCart: (item: MenuItem, quantity: number, comment?: string) => void;
+}
 
 const menuItems: MenuItem[] = [
   {
@@ -11,14 +15,30 @@ const menuItems: MenuItem[] = [
     description: 'Tender chicken pieces cooked in a rich, aromatic curry sauce with traditional Indian spices.',
     price: 15.99,
     image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1565557623262-b51c2513a641?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1585937421612-70a008356fbe?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1516714435131-44d6b64dc6a2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80'
+    ],
+    video: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
     ingredients: ['Chicken', 'Onions', 'Tomatoes', 'Ginger', 'Garlic', 'Garam Masala'],
     allergens: ['Dairy', 'Mustard']
+  },
+  {
+    id: 2,
+    name: 'Margherita Pizza',
+    description: 'Classic Italian pizza with fresh mozzarella, tomatoes, and basil on a crispy thin crust.',
+    price: 13.99,
+    image: 'https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80'
+    ],
+    ingredients: ['Pizza Dough', 'Tomatoes', 'Mozzarella', 'Basil', 'Olive Oil'],
+    allergens: ['Gluten', 'Dairy']
   }
 ];
-
-interface MenuPageProps {
-  addToCart: (item: MenuItem) => void;
-}
 
 const MenuPage: React.FC<MenuPageProps> = ({ addToCart }) => {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
@@ -26,23 +46,6 @@ const MenuPage: React.FC<MenuPageProps> = ({ addToCart }) => {
   const [cardStyle, setCardStyle] = useState<'default' | 'minimal' | 'elegant' | 'modern' | 'playful'>('default');
   const [showLayoutMenu, setShowLayoutMenu] = useState(false);
   const [showStyleMenu, setShowStyleMenu] = useState(false);
-  
-  const layoutRef = useRef<HTMLDivElement>(null);
-  const styleRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (layoutRef.current && !layoutRef.current.contains(event.target as Node)) {
-        setShowLayoutMenu(false);
-      }
-      if (styleRef.current && !styleRef.current.contains(event.target as Node)) {
-        setShowStyleMenu(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const getGridClass = () => {
     switch (layout) {
@@ -58,20 +61,17 @@ const MenuPage: React.FC<MenuPageProps> = ({ addToCart }) => {
   };
 
   return (
-    <div>
+    <div className="container mx-auto px-4">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl sm:text-3xl font-bold">Our Menu</h2>
         <div className="flex space-x-4">
-          <div className="relative" ref={layoutRef}>
+          <div className="relative">
             <button 
-              className="flex items-center bg-white px-3 py-2 rounded-md shadow-sm hover:bg-gray-50"
-              onClick={() => {
-                setShowLayoutMenu(!showLayoutMenu);
-                setShowStyleMenu(false);
-              }}
+              className="flex items-center bg-white px-3 py-2 rounded-md shadow-sm"
+              onClick={() => setShowLayoutMenu(!showLayoutMenu)}
             >
               <span className="mr-2">Layout</span>
-              <ChevronDown size={20} className={`transform transition-transform ${showLayoutMenu ? 'rotate-180' : ''}`} />
+              <ChevronDown size={20} />
             </button>
             {showLayoutMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
@@ -82,16 +82,13 @@ const MenuPage: React.FC<MenuPageProps> = ({ addToCart }) => {
               </div>
             )}
           </div>
-          <div className="relative" ref={styleRef}>
+          <div className="relative">
             <button 
-              className="flex items-center bg-white px-3 py-2 rounded-md shadow-sm hover:bg-gray-50"
-              onClick={() => {
-                setShowStyleMenu(!showStyleMenu);
-                setShowLayoutMenu(false);
-              }}
+              className="flex items-center bg-white px-3 py-2 rounded-md shadow-sm"
+              onClick={() => setShowStyleMenu(!showStyleMenu)}
             >
               <span className="mr-2">Style</span>
-              <ChevronDown size={20} className={`transform transition-transform ${showStyleMenu ? 'rotate-180' : ''}`} />
+              <ChevronDown size={20} />
             </button>
             {showStyleMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
@@ -112,8 +109,8 @@ const MenuPage: React.FC<MenuPageProps> = ({ addToCart }) => {
             key={item.id}
             item={item}
             cardStyle={cardStyle}
-            onItemClick={(item) => setSelectedItem(item)}
-            onAddToCart={addToCart}
+            onItemClick={() => setSelectedItem(item)}
+            onAddToCart={(item, quantity) => addToCart(item, quantity)}
           />
         ))}
       </div>

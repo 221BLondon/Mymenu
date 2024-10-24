@@ -10,6 +10,7 @@ export interface MenuItem {
   description: string;
   price: number;
   image: string;
+  images: string[];
   video?: string;
   ingredients: string[];
   allergens: string[];
@@ -17,23 +18,24 @@ export interface MenuItem {
 
 export interface CartItem extends MenuItem {
   quantity: number;
+  comment?: string;
 }
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<'home' | 'menu' | 'cart'>('home');
   const [cart, setCart] = useState<CartItem[]>([]);
 
-  const addToCart = (item: MenuItem) => {
+  const addToCart = (item: MenuItem, quantity: number = 1, comment?: string) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((cartItem) => cartItem.id === item.id);
       if (existingItem) {
         return prevCart.map((cartItem) =>
           cartItem.id === item.id
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
+            ? { ...cartItem, quantity: cartItem.quantity + quantity }
             : cartItem
         );
       }
-      return [...prevCart, { ...item, quantity: 1 }];
+      return [...prevCart, { ...item, quantity, comment }];
     });
   };
 
@@ -45,6 +47,14 @@ const App: React.FC = () => {
     setCart((prevCart) =>
       prevCart.map((item) =>
         item.id === id ? { ...item, quantity: newQuantity } : item
+      )
+    );
+  };
+
+  const updateComment = (id: number, comment: string) => {
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.id === id ? { ...item, comment } : item
       )
     );
   };
@@ -84,6 +94,7 @@ const App: React.FC = () => {
             cart={cart}
             removeFromCart={removeFromCart}
             updateQuantity={updateQuantity}
+            updateComment={updateComment}
           />
         )}
       </main>
