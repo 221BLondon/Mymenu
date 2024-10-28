@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Minus, Plus, Play, Image as ImageIcon } from 'lucide-react';
 import { MenuItem } from '../App';
 
 interface MenuModalProps {
@@ -41,33 +41,34 @@ const MenuModal: React.FC<MenuModalProps> = ({ item, onClose, onAddToCart }) => 
         <div className="relative">
           {/* Media Toggle Buttons */}
           {item.video && (
-            <div className="absolute top-4 left-4 bg-white/90 rounded-lg overflow-hidden flex">
+            <div className="absolute top-4 left-4 bg-white/90 rounded-lg overflow-hidden flex z-10">
               <button 
                 onClick={() => setActiveMedia('image')}
-                className={`px-4 py-2 ${activeMedia === 'image' ? 'bg-red-600 text-white' : 'text-gray-700'}`}
+                className={`px-4 py-2 flex items-center gap-2 ${activeMedia === 'image' ? 'bg-red-600 text-white' : 'text-gray-700'}`}
               >
+                <ImageIcon size={16} />
                 Photo
               </button>
               <button 
                 onClick={() => setActiveMedia('video')}
-                className={`px-4 py-2 ${activeMedia === 'video' ? 'bg-red-600 text-white' : 'text-gray-700'}`}
+                className={`px-4 py-2 flex items-center gap-2 ${activeMedia === 'video' ? 'bg-red-600 text-white' : 'text-gray-700'}`}
               >
+                <Play size={16} />
                 Video
               </button>
             </div>
           )}
 
           {/* Close Button */}
-
-
-          {/* Media Display */}
-          <div className="h-72 relative">
           <button 
             onClick={onClose} 
-            className="absolute top-4 right-4 bg-white/90 p-2 rounded-full hover:bg-white transition-colors"
+            className="absolute top-4 right-4 bg-white/90 p-2 rounded-full hover:bg-white transition-colors z-10"
           >
             <X size={24} className="text-gray-700" />
           </button>
+
+          {/* Media Display */}
+          <div className="h-72 relative">
             {activeMedia === 'image' ? (
               <>
                 <img 
@@ -89,6 +90,25 @@ const MenuModal: React.FC<MenuModalProps> = ({ item, onClose, onAddToCart }) => 
                     >
                       <ChevronRight size={24} className="text-gray-700" />
                     </button>
+                    
+                    {/* Image Thumbnails */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-white/90 p-2 rounded-lg">
+                      {item.images.map((image, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentImageIndex(index)}
+                          className={`w-12 h-12 rounded-md overflow-hidden border-2 transition-all ${
+                            currentImageIndex === index ? 'border-red-600 scale-110' : 'border-transparent opacity-70 hover:opacity-100'
+                          }`}
+                        >
+                          <img
+                            src={image}
+                            alt={`${item.name} preview ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
                   </>
                 )}
               </>
@@ -136,7 +156,6 @@ const MenuModal: React.FC<MenuModalProps> = ({ item, onClose, onAddToCart }) => 
             </div>
           </div>
 
-          {/* Special Instructions */}
           <div className="mb-6">
             <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
               Special Instructions

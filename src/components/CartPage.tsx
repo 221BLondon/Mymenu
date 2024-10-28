@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { CartItem } from '../App';
-import { Trash2, MessageSquare, X, Minus, Plus } from 'lucide-react';
+import { Trash2, MessageSquare, X, Plus, Minus } from 'lucide-react';
 
 interface CartPageProps {
   cart: CartItem[];
   removeFromCart: (id: number) => void;
   updateQuantity: (id: number, quantity: number) => void;
   updateComment: (id: number, comment: string) => void;
+  onCheckout: (customerName: string) => void;
 }
 
 const CartPage: React.FC<CartPageProps> = ({
@@ -14,9 +15,12 @@ const CartPage: React.FC<CartPageProps> = ({
   removeFromCart,
   updateQuantity,
   updateComment,
+  onCheckout,
 }) => {
   const [editingComment, setEditingComment] = useState<number | null>(null);
   const [tempComment, setTempComment] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [showNameError, setShowNameError] = useState(false);
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -30,6 +34,15 @@ const CartPage: React.FC<CartPageProps> = ({
     setEditingComment(null);
   };
 
+  const handleCheckout = () => {
+    if (customerName.trim()) {
+      setShowNameError(false);
+      onCheckout(customerName.trim());
+    } else {
+      setShowNameError(true);
+    }
+  };
+
   return (
     <div>
       <h2 className="text-2xl sm:text-3xl font-bold mb-6">Your Cart</h2>
@@ -37,7 +50,7 @@ const CartPage: React.FC<CartPageProps> = ({
         <p>Your cart is empty.</p>
       ) : (
         <>
-          <div className="space-y-4">
+          <div className="space-y-4 mb-8">
             {cart.map((item) => (
               <div
                 key={item.id}
@@ -80,7 +93,6 @@ const CartPage: React.FC<CartPageProps> = ({
                   </div>
                 </div>
 
-                {/* Comment Section */}
                 <div className="mt-2">
                   {editingComment === item.id ? (
                     <div className="flex items-start space-x-2">
@@ -124,11 +136,40 @@ const CartPage: React.FC<CartPageProps> = ({
               </div>
             ))}
           </div>
-          <div className="mt-8">
-            <h3 className="text-xl sm:text-2xl font-bold">Total: ${total.toFixed(2)}</h3>
-            <button className="mt-4 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
-              Proceed to Checkout
-            </button>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="mb-4">
+              <label htmlFor="customerName" className="block text-sm font-medium text-gray-700 mb-1">
+                Your Name *
+              </label>
+              <input
+                type="text"
+                id="customerName"
+                value={customerName}
+                onChange={(e) => {
+                  setCustomerName(e.target.value);
+                  setShowNameError(false);
+                }}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-red-500 focus:border-red-500 ${
+                  showNameError ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="Enter your name"
+              />
+              {showNameError && (
+                <p className="mt-1 text-sm text-red-600">Please enter your name to continue</p>
+              )}
+            </div>
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div>
+                <p className="text-gray-600">Total Items: {cart.reduce((sum, item) => sum + item.quantity, 0)}</p>
+                <p className="text-2xl font-bold text-red-600">Total: ${total.toFixed(2)}</p>
+              </div>
+              <button
+                onClick={handleCheckout}
+                className="w-full sm:w-auto bg-red-600 text-white px-8 py-3 rounded-lg hover:bg-red-700 transition-colors transform hover:scale-105 duration-200 font-semibold"
+              >
+                Place Order
+              </button>
+            </div>
           </div>
         </>
       )}

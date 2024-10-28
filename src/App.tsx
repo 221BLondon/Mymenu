@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Menu as MenuIcon, ShoppingCart, Home } from 'lucide-react';
+import { Menu as MenuIcon, ShoppingCart, Home, ClipboardList } from 'lucide-react';
 import MenuPage from './components/MenuPage';
 import CartPage from './components/CartPage';
 import HomePage from './components/HomePage';
+import OrdersPage from './components/OrdersPage';
 
 export interface MenuItem {
   id: number;
@@ -21,9 +22,18 @@ export interface CartItem extends MenuItem {
   comment?: string;
 }
 
+export interface Order {
+  id: string;
+  customerName: string;
+  items: CartItem[];
+  total: number;
+  date: Date;
+}
+
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<'home' | 'menu' | 'cart'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'menu' | 'cart' | 'orders'>('home');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
 
   const addToCart = (item: MenuItem, quantity: number = 1, comment?: string) => {
     setCart((prevCart) => {
@@ -59,6 +69,24 @@ const App: React.FC = () => {
     );
   };
 
+  const placeOrder = (customerName: string) => {
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const newOrder: Order = {
+      id: Date.now().toString(),
+      customerName,
+      items: [...cart],
+      total,
+      date: new Date(),
+    };
+    setOrders((prevOrders) => [...prevOrders, newOrder]);
+    setCart([]);
+    setCurrentPage('orders');
+  };
+
+  const deleteOrder = (orderId: string) => {
+    setOrders((prevOrders) => prevOrders.filter((order) => order.id !== orderId));
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <nav className="bg-red-600 text-white p-4">
@@ -82,6 +110,10 @@ const App: React.FC = () => {
                 </span>
               )}
             </button>
+            <button onClick={() => setCurrentPage('orders')} className="flex items-center">
+              <ClipboardList size={24} className="mr-1" />
+              <span className="hidden sm:inline">Orders</span>
+            </button>
           </div>
         </div>
       </nav>
@@ -95,7 +127,11 @@ const App: React.FC = () => {
             removeFromCart={removeFromCart}
             updateQuantity={updateQuantity}
             updateComment={updateComment}
+            onCheckout={placeOrder}
           />
+        )}
+        {currentPage === 'orders' && (
+          <OrdersPage orders={orders} onDeleteOrder={deleteOrder} />
         )}
       </main>
     </div>
