@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Menu as MenuIcon, ShoppingCart, Home, ClipboardList } from 'lucide-react';
+import { Menu as MenuIcon, ShoppingCart, Home, ClipboardList, Settings } from 'lucide-react';
 import MenuPage from './components/MenuPage';
 import CartPage from './components/CartPage';
 import HomePage from './components/HomePage';
 import OrdersPage from './components/OrdersPage';
+import AdminPage from './components/AdminPage';
 
 export interface MenuItem {
   id: number;
@@ -30,8 +31,40 @@ export interface Order {
   date: Date;
 }
 
+const menuItems: MenuItem[] = [
+  {
+    id: 1,
+    name: 'Chicken Curry',
+    description: 'Tender chicken pieces cooked in a rich, aromatic curry sauce with traditional Indian spices.',
+    price: 15.99,
+    image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1565557623262-b51c2513a641?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1585937421612-70a008356fbe?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1516714435131-44d6b64dc6a2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80'
+    ],
+    video: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    ingredients: ['Chicken', 'Onions', 'Tomatoes', 'Ginger', 'Garlic', 'Garam Masala'],
+    allergens: ['Dairy', 'Mustard']
+  },
+  {
+    id: 2,
+    name: 'Margherita Pizza',
+    description: 'Classic Italian pizza with fresh mozzarella, tomatoes, and basil on a crispy thin crust.',
+    price: 13.99,
+    image: 'https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80'
+    ],
+    ingredients: ['Pizza Dough', 'Tomatoes', 'Mozzarella', 'Basil', 'Olive Oil'],
+    allergens: ['Gluten', 'Dairy']
+  }
+];
+
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<'home' | 'menu' | 'cart' | 'orders'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'menu' | 'cart' | 'orders' | 'admin'>('home');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
 
@@ -114,6 +147,10 @@ const App: React.FC = () => {
               <ClipboardList size={24} className="mr-1" />
               <span className="hidden sm:inline">Orders</span>
             </button>
+            <button onClick={() => setCurrentPage('admin')} className="flex items-center">
+              <Settings size={24} className="mr-1" />
+              <span className="hidden sm:inline">Admin</span>
+            </button>
           </div>
         </div>
       </nav>
@@ -132,6 +169,9 @@ const App: React.FC = () => {
         )}
         {currentPage === 'orders' && (
           <OrdersPage orders={orders} onDeleteOrder={deleteOrder} />
+        )}
+        {currentPage === 'admin' && (
+          <AdminPage menuItems={menuItems} />
         )}
       </main>
     </div>
