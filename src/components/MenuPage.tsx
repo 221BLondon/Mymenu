@@ -1,51 +1,82 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { MenuItem } from '../App';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Search, X, Flame } from 'lucide-react';
 import MenuModal from './MenuModal';
 import MenuCard from './MenuCard';
 
 interface MenuPageProps {
   addToCart: (item: MenuItem, quantity: number, comment?: string) => void;
+  menuItems: MenuItem[];
 }
 
-const menuItems: MenuItem[] = [
-  {
-    id: 1,
-    name: 'Chicken Curry',
-    description: 'Tender chicken pieces cooked in a rich, aromatic curry sauce with traditional Indian spices.',
-    price: 15.99,
-    image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
-    images: [
-      'https://images.unsplash.com/photo-1565557623262-b51c2513a641?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1585937421612-70a008356fbe?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1516714435131-44d6b64dc6a2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80'
-    ],
-    video: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    ingredients: ['Chicken', 'Onions', 'Tomatoes', 'Ginger', 'Garlic', 'Garam Masala'],
-    allergens: ['Dairy', 'Mustard']
-  },
-  {
-    id: 2,
-    name: 'Margherita Pizza',
-    description: 'Classic Italian pizza with fresh mozzarella, tomatoes, and basil on a crispy thin crust.',
-    price: 13.99,
-    image: 'https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
-    images: [
-      'https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80'
-    ],
-    ingredients: ['Pizza Dough', 'Tomatoes', 'Mozzarella', 'Basil', 'Olive Oil'],
-    allergens: ['Gluten', 'Dairy']
-  }
-];
+const dietaryOptions = ['vegetarian', 'vegan', 'gluten-free'] as const;
+const spicyLevels = [1, 2, 3] as const;
 
-const MenuPage: React.FC<MenuPageProps> = ({ addToCart }) => {
+const MenuPage: React.FC<MenuPageProps> = ({ addToCart, menuItems }) => {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [layout, setLayout] = useState<'grid' | 'list' | 'compact' | 'magazine'>('grid');
   const [cardStyle, setCardStyle] = useState<'default' | 'minimal' | 'elegant' | 'modern' | 'playful'>('default');
   const [showLayoutMenu, setShowLayoutMenu] = useState(false);
   const [showStyleMenu, setShowStyleMenu] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedDietary, setSelectedDietary] = useState<Set<typeof dietaryOptions[number]>>(new Set());
+  const [selectedSpicyLevels, setSelectedSpicyLevels] = useState<Set<typeof spicyLevels[number]>>(new Set());
+
+  const categories = useMemo(() => 
+    ['All', ...new Set(menuItems.map(item => item.category))],
+    [menuItems]
+  );
+
+  const filteredItems = useMemo(() => {
+    return menuItems.filter(item => {
+      // Search filter
+      const searchMatch = 
+        searchQuery === '' ||
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.ingredients.some(ing => ing.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      // Category filter
+      const categoryMatch = selectedCategory === 'All' || item.category === selectedCategory;
+
+      // Dietary filter
+      const dietaryMatch = 
+        selectedDietary.size === 0 ||
+        (item.dietary && Array.from(selectedDietary).every(diet => item.dietary?.includes(diet)));
+
+      // Spicy level filter
+      const spicyMatch =
+        selectedSpicyLevels.size === 0 ||
+        (item.spicyLevel && selectedSpicyLevels.has(item.spicyLevel));
+
+      return searchMatch && categoryMatch && dietaryMatch && spicyMatch;
+    });
+  }, [menuItems, searchQuery, selectedCategory, selectedDietary, selectedSpicyLevels]);
+
+  const toggleDietary = (option: typeof dietaryOptions[number]) => {
+    setSelectedDietary(prev => {
+      const next = new Set(prev);
+      if (next.has(option)) {
+        next.delete(option);
+      } else {
+        next.add(option);
+      }
+      return next;
+    });
+  };
+
+  const toggleSpicyLevel = (level: typeof spicyLevels[number]) => {
+    setSelectedSpicyLevels(prev => {
+      const next = new Set(prev);
+      if (next.has(level)) {
+        next.delete(level);
+      } else {
+        next.add(level);
+      }
+      return next;
+    });
+  };
 
   const getGridClass = () => {
     switch (layout) {
@@ -62,6 +93,114 @@ const MenuPage: React.FC<MenuPageProps> = ({ addToCart }) => {
 
   return (
     <div className="container mx-auto px-4">
+      <div className="flex flex-col space-y-6 mb-8">
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="Search dishes, ingredients..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X size={20} />
+            </button>
+          )}
+        </div>
+
+        {/* Filter Chips */}
+        <div className="flex flex-wrap gap-2">
+          {/* Category Chips */}
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                selectedCategory === category
+                  ? 'bg-red-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
+        {/* Additional Filters */}
+        <div className="flex flex-wrap gap-2">
+          {/* Dietary Filters */}
+          {dietaryOptions.map((option) => (
+            <button
+              key={option}
+              onClick={() => toggleDietary(option)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                selectedDietary.has(option)
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {option}
+            </button>
+          ))}
+
+          {/* Spicy Level Filters */}
+          {spicyLevels.map((level) => (
+            <button
+              key={level}
+              onClick={() => toggleSpicyLevel(level)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-1 ${
+                selectedSpicyLevels.has(level)
+                  ? 'bg-orange-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <Flame size={16} className={selectedSpicyLevels.has(level) ? 'text-white' : 'text-orange-500'} />
+              {level}
+            </button>
+          ))}
+        </div>
+
+        {/* Active Filters Summary */}
+        {(selectedDietary.size > 0 || selectedSpicyLevels.size > 0 || selectedCategory !== 'All') && (
+          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+            <span>Active filters:</span>
+            {selectedCategory !== 'All' && (
+              <span className="bg-red-100 text-red-700 px-2 py-1 rounded-md">
+                {selectedCategory}
+              </span>
+            )}
+            {Array.from(selectedDietary).map((diet) => (
+              <span key={diet} className="bg-green-100 text-green-700 px-2 py-1 rounded-md">
+                {diet}
+              </span>
+            ))}
+            {Array.from(selectedSpicyLevels).map((level) => (
+              <span key={level} className="bg-orange-100 text-orange-700 px-2 py-1 rounded-md flex items-center gap-1">
+                <Flame size={14} />
+                {level}
+              </span>
+            ))}
+            <button
+              onClick={() => {
+                setSelectedCategory('All');
+                setSelectedDietary(new Set());
+                setSelectedSpicyLevels(new Set());
+              }}
+              className="text-red-600 hover:text-red-700 font-medium"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Layout Controls */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl sm:text-3xl font-bold">Our Menu</h2>
         <div className="flex space-x-4">
@@ -103,17 +242,34 @@ const MenuPage: React.FC<MenuPageProps> = ({ addToCart }) => {
         </div>
       </div>
 
-      <div className={getGridClass()}>
-        {menuItems.map((item) => (
-          <MenuCard
-            key={item.id}
-            item={item}
-            cardStyle={cardStyle}
-            onItemClick={() => setSelectedItem(item)}
-            onAddToCart={(item, quantity) => addToCart(item, quantity)}
-          />
-        ))}
-      </div>
+      {filteredItems.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-600">No items found matching your criteria.</p>
+          <button
+            onClick={() => {
+              setSearchQuery('');
+              setSelectedCategory('All');
+              setSelectedDietary(new Set());
+              setSelectedSpicyLevels(new Set());
+            }}
+            className="mt-4 text-red-600 hover:text-red-700 font-medium"
+          >
+            Clear all filters
+          </button>
+        </div>
+      ) : (
+        <div className={getGridClass()}>
+          {filteredItems.map((item) => (
+            <MenuCard
+              key={item.id}
+              item={item}
+              cardStyle={cardStyle}
+              onItemClick={() => setSelectedItem(item)}
+              onAddToCart={(item, quantity) => addToCart(item, quantity)}
+            />
+          ))}
+        </div>
+      )}
 
       {selectedItem && (
         <MenuModal
