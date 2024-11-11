@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { MenuItem } from '../App';
-import { 
-  PlusCircle, 
-  Edit2, 
-  Trash2, 
-  Grid, 
-  List, 
+import {
+  PlusCircle,
+  Edit2,
+  Trash2,
+  Grid,
+  List,
   Search,
   Coffee,
   DollarSign,
@@ -13,23 +12,41 @@ import {
   Tag,
   Utensils,
   AlignLeft,
-  AlertOctagon
+  AlertOctagon,
+  Settings,
+  MapPin,
+  Bell,
+  Link,
+  Clock,
+  Phone,
+  Mail,
+  Globe,
+  Facebook,
+  Instagram,
+  Twitter,
+  Plus,
+  Calendar
 } from 'lucide-react';
+import { MenuItem, RestaurantSettings } from '../types';
 
 interface AdminPageProps {
   menuItems: MenuItem[];
+  settings: RestaurantSettings;
   onAddItem?: (item: MenuItem) => void;
   onUpdateItem?: (id: number, item: MenuItem) => void;
   onDeleteItem?: (id: number) => void;
+  onUpdateSettings?: (settings: RestaurantSettings) => void;
 }
 
-type TabType = 'menu' | 'ingredients' | 'allergens';
+type TabType = 'menu' | 'ingredients' | 'allergens' | 'settings';
 
-const AdminPage: React.FC<AdminPageProps> = ({ 
+const AdminPage: React.FC<AdminPageProps> = ({
   menuItems,
+  settings,
   onAddItem,
   onUpdateItem,
-  onDeleteItem
+  onDeleteItem,
+  onUpdateSettings
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('menu');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -40,7 +57,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [newIngredient, setNewIngredient] = useState('');
   const [newAllergen, setNewAllergen] = useState('');
-
+  const [activeSettingsSection, setActiveSettingsSection] = useState<'general' | 'offers' | 'locations' | 'links'>('general');
   const allIngredients = [...new Set(menuItems.flatMap(item => item.ingredients))];
   const allAllergens = [...new Set(menuItems.flatMap(item => item.allergens))];
 
@@ -127,7 +144,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center gap-4">
             <div className="p-2 bg-green-50 rounded-lg">
@@ -141,7 +158,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center gap-4">
             <div className="p-2 bg-yellow-50 rounded-lg">
@@ -153,7 +170,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center gap-4">
             <div className="p-2 bg-purple-50 rounded-lg">
@@ -176,7 +193,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
               activeTab === 'menu'
                 ? 'border-red-600 text-red-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
+              }`}
           >
             <Utensils size={20} />
             Menu Items
@@ -187,7 +204,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
               activeTab === 'ingredients'
                 ? 'border-red-600 text-red-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
+              }`}
           >
             <AlignLeft size={20} />
             Ingredients
@@ -198,15 +215,25 @@ const AdminPage: React.FC<AdminPageProps> = ({
               activeTab === 'allergens'
                 ? 'border-red-600 text-red-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
+              }`}
           >
             <AlertOctagon size={20} />
             Allergens
           </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'settings'
+                ? 'border-red-600 text-red-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+          >
+            <Settings size={20} />
+            Settings
+          </button>
         </nav>
       </div>
 
-      {/* Tab Content */}
+      {/* Previous tab content remains the same */}
       {activeTab === 'menu' && (
         <>
           {/* Search and View Toggle */}
@@ -376,175 +403,322 @@ const AdminPage: React.FC<AdminPageProps> = ({
           </div>
         </div>
       )}
+      {/* Settings Tab Content */}
+      {activeTab === 'settings' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          {/* Settings Navigation */}
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6">
+              <button
+                onClick={() => setActiveSettingsSection('general')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeSettingsSection === 'general'
+                    ? 'border-red-600 text-red-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+              >
+                General Info
+              </button>
+              <button
+                onClick={() => setActiveSettingsSection('offers')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeSettingsSection === 'offers'
+                    ? 'border-red-600 text-red-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+              >
+                Offers & Notices
+              </button>
+              <button
+                onClick={() => setActiveSettingsSection('locations')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeSettingsSection === 'locations'
+                    ? 'border-red-600 text-red-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+              >
+                Locations
+              </button>
+              <button
+                onClick={() => setActiveSettingsSection('links')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeSettingsSection === 'links'
+                    ? 'border-red-600 text-red-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+              >
+                Social Links
+              </button>
+            </nav>
+          </div>
 
-      {/* Edit/Add Modal */}
-      {isEditing && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-2xl font-bold mb-6">
-                {selectedItem ? 'Edit Item' : 'Add New Item'}
-              </h2>
-              
+          {/* Settings Content */}
+          <div className="p-6">
+            {/* General Information */}
+            {activeSettingsSection === 'general' && (
               <div className="space-y-6">
-                <form className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Name
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      defaultValue={selectedItem?.name}
+                <div className="flex items-start gap-6">
+                  <div className="w-24 h-24 rounded-lg overflow-hidden">
+                    <img
+                      src={settings.logo}
+                      alt="Restaurant logo"
+                      className="w-full h-full object-cover"
                     />
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      defaultValue={selectedItem?.description}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Price
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      defaultValue={selectedItem?.price}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Category
-                    </label>
-                    <select
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      defaultValue={selectedItem?.category}
-                    >
-                      <option value="">Select a category</option>
-                      <option value="Main Course">Main Course</option>
-                      <option value="Pizza">Pizza</option>
-                      <option value="Bowls">Bowls</option>
-                      <option value="Burgers">Burgers</option>
-                      <option value="Salads">Salads</option>
-                      <option value="Noodles">Noodles</option>
-                      <option value="Desserts">Desserts</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Ingredients
-                    </label>
-                    <select
-                      multiple
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      defaultValue={selectedItem?.ingredients}
-                    >
-                      {allIngredients.map((ingredient, index) => (
-                        <option key={index} value={ingredient}>
-                          {ingredient}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Allergens
-                    </label>
-                    <select
-                      multiple
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      defaultValue={selectedItem?.allergens}
-                    >
-                      {allAllergens.map((allergen, index) => (
-                        <option key={index} value={allergen}>
-                          {allergen}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Spicy Level
-                    </label>
-                    <select
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      defaultValue={selectedItem?.spicyLevel}
-                    >
-                      <option value="">Not Spicy</option>
-                      <option value="1">Mild</option>
-                      <option value="2">Medium</option>
-                      <option value="3">Hot</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Dietary Options
-                    </label>
-                    <div className="space-y-2">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          className="rounded border-gray-300 text-red-600 focus:ring-red-500"
-                          defaultChecked={selectedItem?.dietary?.includes('vegetarian')}
-                        />
-                        <span className="ml-2">Vegetarian</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          className="rounded border-gray-300 text-red-600 focus:ring-red-500"
-                          defaultChecked={selectedItem?.dietary?.includes('vegan')}
-                        />
-                        <span className="ml-2">Vegan</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          className="rounded border-gray-300 text-red-600 focus:ring-red-500"
-                          defaultChecked={selectedItem?.dietary?.includes('gluten-free')}
-                        />
-                        <span className="ml-2">Gluten Free</span>
-                      </label>
+                  <div className="flex-1 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Restaurant Name</label>
+                      <input
+                        type="text"
+                        defaultValue={settings.name}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Description</label>
+                      <textarea
+                        rows={3}
+                        defaultValue={settings.description}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                      />
                     </div>
                   </div>
-                </form>
+                </div>
 
-                {/* Action Buttons */}
-                <div className="flex justify-end gap-4 pt-4 border-t">
-                  <button
-                    onClick={() => setIsEditing(false)}
-                    className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsEditing(false);
-                    }}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                  >
-                    Save Changes
-                  </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Phone</label>
+                    <div className="mt-1 flex rounded-md shadow-sm">
+                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                        <Phone size={16} />
+                      </span>
+                      <input
+                        type="tel"
+                        defaultValue={settings.phone}
+                        className="flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:border-red-500 focus:ring-red-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                    <div className="mt-1 flex rounded-md shadow-sm">
+                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                        <Mail size={16} />
+                      </span>
+                      <input
+                        type="email"
+                        defaultValue={settings.email}
+                        className="flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:border-red-500 focus:ring-red-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Address</label>
+                  <div className="mt-1 flex rounded-md shadow-sm">
+                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                      <MapPin size={16} />
+                    </span>
+                    <input
+                      type="text"
+                      defaultValue={settings.address}
+                      className="flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:border-red-500 focus:ring-red-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Opening Hours</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Object.entries(settings.openingHours).map(([day, hours]) => (
+                      <div key={day} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                        <span className="capitalize">{day}</span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="time"
+                            defaultValue={hours?.open}
+                            className="rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                          />
+                          <span>-</span>
+                          <input
+                            type="time"
+                            defaultValue={hours?.close}
+                            className="rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
+            )}
+
+            {/* Offers & Notices */}
+            {activeSettingsSection === 'offers' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-medium text-gray-900">Current Offers</h3>
+                  <button className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                    <Plus size={20} />
+                    Add Offer
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {settings.offers.map((offer: any) => (
+                    <div key={offer.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                      {offer.image && (
+                        <img
+                          src={offer.image}
+                          alt={offer.title}
+                          className="w-full h-48 object-cover"
+                        />
+                      )}
+                      <div className="p-4">
+                        <div className="flex justify-between items-start">
+                          <h4 className="text-lg font-semibold">{offer.title}</h4>
+                          <div className="flex gap-2">
+                            <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
+                              <Edit2 size={18} />
+                            </button>
+                            <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-gray-600 mt-2">{offer.description}</p>
+                        <div className="mt-4 flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2 text-gray-500">
+                            <Calendar size={16} />
+                            <span>Valid until {new Date(offer.validUntil).toLocaleDateString()}</span>
+                          </div>
+                          {offer.code && (
+                            <span className="bg-gray-100 px-3 py-1 rounded-full font-mono">
+                              {offer.code}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Locations */}
+            {activeSettingsSection === 'locations' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-medium text-gray-900">Restaurant Locations</h3>
+                  <button className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                    <Plus size={20} />
+                    Add Location
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {settings.locations.map((location: any) => (
+                    <div key={location.id} className="bg-white rounded-lg border border-gray-200 p-4">
+                      <div className="flex justify-between items-start">
+                        <h4 className="text-lg font-semibold">{location.name}</h4>
+                        <div className="flex gap-2">
+                          <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
+                            <Edit2 size={18} />
+                          </button>
+                          <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="mt-4 space-y-2">
+                        <div className="flex items-start gap-2 text-gray-600">
+                          <MapPin size={18} className="mt-1 flex-shrink-0" />
+                          <span>{location.address}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Phone size={18} />
+                          <span>{location.phone}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Social Links */}
+            {activeSettingsSection === 'links' && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-medium text-gray-900">Social Media & Links</h3>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Website</label>
+                    <div className="mt-1 flex rounded-md shadow-sm">
+                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                        <Globe size={16} />
+                      </span>
+                      <input
+                        type="url"
+                        defaultValue={settings.socialLinks.website}
+                        className="flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:border-red-500 focus:ring-red-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Facebook</label>
+                    <div className="mt-1 flex rounded-md shadow-sm">
+                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                        <Facebook size={16} />
+                      </span>
+                      <input
+                        type="url"
+                        defaultValue={settings.socialLinks.facebook}
+                        className="flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:border-red-500 focus:ring-red-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Instagram</label>
+                    <div className="mt-1 flex rounded-md shadow-sm">
+                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                        <Instagram size={16} />
+                      </span>
+                      <input
+                        type="url"
+                        defaultValue={settings.socialLinks.instagram}
+                        className="flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:border-red-500 focus:ring-red-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Twitter</label>
+                    <div className="mt-1 flex rounded-md shadow-sm">
+                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                        <Twitter size={16} />
+                      </span>
+                      <input
+                        type="url"
+                        defaultValue={settings.socialLinks.twitter}
+                        className="flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:border-red-500 focus:ring-red-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Save Button */}
+            <div className="mt-6 flex justify-end">
+              <button className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                Save Changes
+              </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Previous modals and other content remain the same */}
     </div>
   );
 };
