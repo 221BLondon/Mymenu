@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
-import { Menu as MenuIcon, ShoppingCart, Home, ClipboardList, Settings } from 'lucide-react';
+import {
+  Menu as MenuIcon,
+  ShoppingCart,
+  Home,
+  ClipboardList,
+  Settings,
+} from 'lucide-react';
 import MenuPage from './components/MenuPage';
 import CartPage from './components/CartPage';
 import HomePage from './components/HomePage';
 import OrdersPage from './components/OrdersPage';
-import AdminPage from './components/AdminPage';
+// import AdminPage from './components/AdminPage';
 import { CartItem, MenuItem, Order, RestaurantSettings } from './types';
 import { menuItems } from './data/menuItems';
 import { defaultSettings } from './data/defaultSettings';
+import AdminPage from './components/AdminPage';
 
 type PageType = 'home' | 'menu' | 'cart' | 'orders' | 'admin';
 
@@ -17,7 +24,11 @@ const App = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [settings, setSettings] = useState<RestaurantSettings>(defaultSettings);
 
-  const addToCart = (item: MenuItem, quantity: number = 1, comment?: string) => {
+  const addToCart = (
+    item: MenuItem,
+    quantity: number = 1,
+    comment?: string
+  ) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((cartItem) => cartItem.id === item.id);
       if (existingItem) {
@@ -45,14 +56,15 @@ const App = () => {
 
   const updateComment = (id: number, comment: string) => {
     setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.id === id ? { ...item, comment } : item
-      )
+      prevCart.map((item) => (item.id === id ? { ...item, comment } : item))
     );
   };
 
   const placeOrder = (customerName: string) => {
-    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const total = cart.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
     const newOrder: Order = {
       id: Date.now().toString(),
       customerName,
@@ -66,7 +78,9 @@ const App = () => {
   };
 
   const deleteOrder = (orderId: string) => {
-    setOrders((prevOrders) => prevOrders.filter((order) => order.id !== orderId));
+    setOrders((prevOrders) =>
+      prevOrders.filter((order) => order.id !== orderId)
+    );
   };
 
   const updateSettings = (newSettings: RestaurantSettings) => {
@@ -79,15 +93,24 @@ const App = () => {
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">{settings.name}</h1>
           <div className="flex space-x-4">
-            <button onClick={() => setCurrentPage('home')} className="flex items-center">
+            <button
+              onClick={() => setCurrentPage('home')}
+              className="flex items-center"
+            >
               <Home size={24} className="mr-1" />
               <span className="hidden sm:inline">Home</span>
             </button>
-            <button onClick={() => setCurrentPage('menu')} className="flex items-center">
+            <button
+              onClick={() => setCurrentPage('menu')}
+              className="flex items-center"
+            >
               <MenuIcon size={24} className="mr-1" />
               <span className="hidden sm:inline">Menu</span>
             </button>
-            <button onClick={() => setCurrentPage('cart')} className="flex items-center">
+            <button
+              onClick={() => setCurrentPage('cart')}
+              className="flex items-center"
+            >
               <ShoppingCart size={24} className="mr-1" />
               <span className="hidden sm:inline">Cart</span>
               {cart.length > 0 && (
@@ -96,11 +119,17 @@ const App = () => {
                 </span>
               )}
             </button>
-            <button onClick={() => setCurrentPage('orders')} className="flex items-center">
+            <button
+              onClick={() => setCurrentPage('orders')}
+              className="flex items-center"
+            >
               <ClipboardList size={24} className="mr-1" />
               <span className="hidden sm:inline">Orders</span>
             </button>
-            <button onClick={() => setCurrentPage('admin')} className="flex items-center">
+            <button
+              onClick={() => setCurrentPage('admin')}
+              className="flex items-center"
+            >
               <Settings size={24} className="mr-1" />
               <span className="hidden sm:inline">Admin</span>
             </button>
@@ -110,7 +139,9 @@ const App = () => {
 
       <main className="container mx-auto mt-8 p-4">
         {currentPage === 'home' && <HomePage settings={settings} />}
-        {currentPage === 'menu' && <MenuPage addToCart={addToCart} menuItems={menuItems} />}
+        {currentPage === 'menu' && (
+          <MenuPage addToCart={addToCart} menuItems={menuItems} />
+        )}
         {currentPage === 'cart' && (
           <CartPage
             cart={cart}
@@ -124,7 +155,7 @@ const App = () => {
           <OrdersPage orders={orders} onDeleteOrder={deleteOrder} />
         )}
         {currentPage === 'admin' && (
-          <AdminPage 
+          <AdminPage
             menuItems={menuItems}
             settings={settings}
             onUpdateSettings={updateSettings}
