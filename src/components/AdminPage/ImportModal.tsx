@@ -17,7 +17,18 @@ const ImportModal: React.FC<ImportModalProps> = ({
 }) => {
   const [importCode, setImportCode] = useState('');
   const [importedSettings, setImportedSettings] = useState<RestaurantSettings | null>(null);
-  const [toggleStates, setToggleStates] = useState<Record<string, boolean>>({});
+  const [toggleStates, setToggleStates] = useState<Record<keyof RestaurantSettings, boolean>>({
+    name: false,
+    description: false,
+    logo: false,
+    phone: false,
+    email: false,
+    address: false,
+    openingHours: false,
+    socialLinks: false,
+    offers: false,
+    locations: false
+  });
   const [error, setError] = useState<string | null>(null);
 
   const handleImportCode = () => {
@@ -26,11 +37,19 @@ const ImportModal: React.FC<ImportModalProps> = ({
       setImportedSettings(decoded);
       setError(null);
       
-      // Initialize all toggles to false
-      const initialToggles: Record<string, boolean> = {};
-      Object.keys(decoded).forEach(key => {
-        initialToggles[key] = false;
-      });
+      // Initialize toggles with keys from RestaurantSettings
+      const initialToggles: Record<keyof RestaurantSettings, boolean> = {
+        name: false,
+        description: false,
+        logo: false,
+        phone: false,
+        email: false,
+        address: false,
+        openingHours: false,
+        socialLinks: false,
+        offers: false,
+        locations: false
+      };
       setToggleStates(initialToggles);
     } catch (e) {
       setError('Invalid import code. Please check and try again.');
@@ -38,7 +57,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
     }
   };
 
-  const handleToggle = (field: string) => {
+  const handleToggle = (field: keyof RestaurantSettings) => {
     setToggleStates(prev => ({
       ...prev,
       [field]: !prev[field]
@@ -48,15 +67,25 @@ const ImportModal: React.FC<ImportModalProps> = ({
   const handleSaveChanges = () => {
     if (!importedSettings) return;
 
-    const selectedChanges: Partial<RestaurantSettings> = Object.keys(toggleStates)
-    .filter((key) => toggleStates[key as keyof typeof toggleStates]) // Ensure key is valid in toggleStates
-    .reduce((acc, key) => {
-      // Ensure key is valid in both toggleStates and importedSettings
-      const typedKey = key as keyof RestaurantSettings;
-      acc[typedKey] = importedSettings[typedKey];
+    // const selectedChanges: Partial<RestaurantSettings> = Object.keys(toggleStates)
+    // .filter((key) => toggleStates[key as keyof typeof toggleStates]) // Ensure key is valid in toggleStates
+    // .reduce((acc, key) => {
+    //   // Ensure key is valid in both toggleStates and importedSettings
+    //   const typedKey = key as keyof RestaurantSettings;
+    //   acc[typedKey] = importedSettings[typedKey];
+    //   return acc;
+    // }, {} as Partial<RestaurantSettings>);
+    const selectedChanges = Object.keys(toggleStates).reduce((acc, key) => {
+      const settingKey = key as keyof RestaurantSettings;
+      if (toggleStates[settingKey]) {
+        // Only add the key-value pair if the toggle is true
+        return {
+          ...acc,
+          [settingKey]: importedSettings[settingKey]
+        };
+      }
       return acc;
     }, {} as Partial<RestaurantSettings>);
-  
 
     onImport(selectedChanges);
     onClose();
@@ -65,11 +94,11 @@ const ImportModal: React.FC<ImportModalProps> = ({
   if (!isOpen) return null;
 
   const renderComparisonField = (
-    field: string,
+    field: keyof RestaurantSettings,
     label: string,
-    currentValue: any,
-    importedValue: any
-  ) => {
+    currentValue: RestaurantSettings[keyof RestaurantSettings],
+    importedValue: RestaurantSettings[keyof RestaurantSettings]
+  ) => {  
     const isToggled = toggleStates[field];
     const hasChange = JSON.stringify(currentValue) !== JSON.stringify(importedValue);
 
