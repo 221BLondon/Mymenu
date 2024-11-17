@@ -156,7 +156,6 @@ const App = () => {
         )}
         {currentPage === 'admin' && (
           <AdminPage
-            menuItems={menuItems}
             settings={settings}
             onUpdateSettings={updateSettings}
           />

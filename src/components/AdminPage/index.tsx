@@ -22,21 +22,23 @@ import {
 import GeneralSettings from './GeneralSettings';
 import SocialLinks from './SocialLinks';
 import ImportModal from './ImportModal';
+import ItemFormModal from './ItemFormModal';
+import { menuItems } from '../../data/menuItems';
 
 interface AdminPageProps {
-  menuItems: MenuItem[];
+  // menuItemsList: MenuItem[];
   settings: RestaurantSettings;
-  onAddItem?: (item: MenuItem) => void;
-  onUpdateItem?: (id: number, item: MenuItem) => void;
-  onDeleteItem?: (id: number) => void;
-  onUpdateSettings?: (settings: RestaurantSettings) => void;
+  // onAddItem: (item: MenuItem) => void;
+  // onUpdateItem: (id: number, item: MenuItem) => void;
+  // onDeleteItem: (id: number) => void;
+  onUpdateSettings: (settings: RestaurantSettings) => void;
 }
 
 type TabType = 'menu' | 'ingredients' | 'allergens' | 'settings';
 type SettingsSectionType = 'general' | 'offers' | 'locations' | 'links';
 
 const AdminPage: React.FC<AdminPageProps> = ({
-  menuItems,
+  // menuItemsList,
   settings: initialSettings,
   onUpdateSettings,
 }) => {
@@ -53,15 +55,18 @@ const AdminPage: React.FC<AdminPageProps> = ({
     useState<SettingsSectionType>('general');
   const [settings, setSettings] = useState<RestaurantSettings>(initialSettings);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-
+  const [menuItemsList, setMenuItemsList] = useState<MenuItem[]>([
+    // Initial menu items here
+    ...menuItems
+  ]);
   const allIngredients = [
-    ...new Set(menuItems.flatMap((item) => item.ingredients)),
+    ...new Set(menuItemsList.flatMap((item) => item.ingredients)),
   ];
   const allAllergens = [
-    ...new Set(menuItems.flatMap((item) => item.allergens)),
+    ...new Set(menuItemsList.flatMap((item) => item.allergens)),
   ];
 
-  const filteredItems = menuItems.filter(
+  const filteredItems = menuItemsList.filter(
     (item) =>
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -76,9 +81,9 @@ const AdminPage: React.FC<AdminPageProps> = ({
   );
 
   const stats = {
-    totalItems: menuItems.length,
+    totalItems: menuItemsList.length,
     averagePrice:
-      menuItems.reduce((acc, item) => acc + item.price, 0) / menuItems.length,
+      menuItemsList.reduce((acc, item) => acc + item.price, 0) / menuItemsList.length,
     totalAllergens: allAllergens.length,
     totalIngredients: allIngredients.length,
   };
@@ -154,7 +159,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
         }`}
       >
         <Coffee size={20} className="mr-2" />
-        Menu Items
+        Menu Items({menuItems.length})
       </button>
       <button
         onClick={() => setActiveTab('ingredients')}
@@ -165,7 +170,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
         }`}
       >
         <Utensils size={20} className="mr-2" />
-        Ingredients
+        Ingredients({allIngredients.length})
       </button>
       <button
         onClick={() => setActiveTab('allergens')}
@@ -176,7 +181,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
         }`}
       >
         <AlertTriangle size={20} className="mr-2" />
-        Allergens
+        Allergens({allAllergens.length})
       </button>
       <button
         onClick={() => setActiveTab('settings')}
@@ -428,7 +433,11 @@ const AdminPage: React.FC<AdminPageProps> = ({
             <List size={20} />
           </button>
         </div>
-        <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center">
+        <button onClick={() => {
+            setSelectedItem(null);
+            setIsEditing(true);
+          }}
+          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center">
           <PlusCircle size={20} className="mr-2" />
           Add Item
         </button>
@@ -454,11 +463,11 @@ const AdminPage: React.FC<AdminPageProps> = ({
                     ${item.price.toFixed(2)}
                   </span>
                   <div className="flex space-x-2">
-                    <button className="p-2 text-blue-600 hover:bg-blue-50 rounded">
+                    <button  onClick={() => editItem(item)} className="p-2 text-blue-600 hover:bg-blue-50 rounded">
                       <Edit2 size={18} />
                     </button>
-                    <button className="p-2 text-red-600 hover:bg-red-50 rounded">
-                      <Trash2 size={18} />
+                    <button onClick={()=>deleteItem(item.id)}  className="p-2 text-red-600 hover:bg-red-50 rounded">
+                      <Trash2  size={18} />
                     </button>
                   </div>
                 </div>
@@ -489,10 +498,12 @@ const AdminPage: React.FC<AdminPageProps> = ({
                   ${item.price.toFixed(2)}
                 </span>
                 <div className="flex space-x-2">
-                  <button className="p-2 text-blue-600 hover:bg-blue-50 rounded">
+                  <button onClick={()=> {
+                      editItem(item);
+                    }} className="p-2 text-blue-600 hover:bg-blue-50 rounded">
                     <Edit2 size={18} />
                   </button>
-                  <button className="p-2 text-red-600 hover:bg-red-50 rounded">
+                  <button onClick={()=>deleteItem(item.id)}  className="p-2 text-red-600 hover:bg-red-50 rounded">
                     <Trash2 size={18} />
                   </button>
                 </div>
@@ -513,7 +524,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
           'Search ingredients...'
         )}
         <div className="flex-shrink-0">
-          <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center">
+          <button onClick={()=>addIngredients()} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center">
             <Plus size={20} className="mr-2" />
             Add Ingredient
           </button>
@@ -544,7 +555,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
           'Search allergens...'
         )}
         <div className="flex-shrink-0">
-          <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center">
+          <button onClick={()=>addAllergen()} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center">
             <Plus size={20} className="mr-2" />
             Add Allergen
           </button>
@@ -566,258 +577,40 @@ const AdminPage: React.FC<AdminPageProps> = ({
     </div>
   );
 
-  // const renderSettings = () => (
-  //   <div>
-  //     <div className="flex space-x-4 mb-6">
-  //       <button
-  //         onClick={() => setActiveSettingsSection('general')}
-  //         className={`px-4 py-2 rounded-lg ${
-  //           activeSettingsSection === 'general'
-  //             ? 'bg-red-600 text-white'
-  //             : 'bg-gray-100 hover:bg-gray-200'
-  //         }`}
-  //       >
-  //         General
-  //       </button>
-  //       <button
-  //         onClick={() => setActiveSettingsSection('offers')}
-  //         className={`px-4 py-2 rounded-lg ${
-  //           activeSettingsSection === 'offers'
-  //             ? 'bg-red-600 text-white'
-  //             : 'bg-gray-100 hover:bg-gray-200'
-  //         }`}
-  //       >
-  //         Offers
-  //       </button>
-  //       <button
-  //         onClick={() => setActiveSettingsSection('locations')}
-  //         className={`px-4 py-2 rounded-lg ${
-  //           activeSettingsSection === 'locations'
-  //             ? 'bg-red-600 text-white'
-  //             : 'bg-gray-100 hover:bg-gray-200'
-  //         }`}
-  //       >
-  //         Locations
-  //       </button>
-  //       <button
-  //         onClick={() => setActiveSettingsSection('links')}
-  //         className={`px-4 py-2 rounded-lg ${
-  //           activeSettingsSection === 'links'
-  //             ? 'bg-red-600 text-white'
-  //             : 'bg-gray-100 hover:bg-gray-200'
-  //         }`}
-  //       >
-  //         Social Links
-  //       </button>
-  //       <button
-  //         // onClick={handleExportSettings}
-  //         className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-  //       >
-  //         <Download size={20} />
-  //         Export
-  //       </button>
-  //       <button
-  //         // onClick={() => setIsImportModalOpen(true)}
-  //         className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-  //       >
-  //         <Upload size={20} />
-  //         Import
-  //       </button>
-  //     </div>
 
-  //     <div className="bg-white rounded-lg shadow-sm p-6">
-  //       {activeSettingsSection === 'general' && (
-  //         <div className="space-y-6">
-  //           <div>
-  //             <label className="block text-sm font-medium text-gray-700 mb-1">
-  //               Restaurant Name
-  //             </label>
-  //             <input
-  //               type="text"
-  //               defaultValue={settings.name}
-  //               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
-  //             />
-  //           </div>
-  //           <div>
-  //             <label className="block text-sm font-medium text-gray-700 mb-1">
-  //               Description
-  //             </label>
-  //             <textarea
-  //               defaultValue={settings.description}
-  //               rows={3}
-  //               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
-  //             />
-  //           </div>
-  //           <div>
-  //             <label className="block text-sm font-medium text-gray-700 mb-1">
-  //               Logo URL
-  //             </label>
-  //             <input
-  //               type="text"
-  //               defaultValue={settings.logo}
-  //               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
-  //             />
-  //           </div>
-  //           <div>
-  //             <label className="block text-sm font-medium text-gray-700 mb-1">
-  //               Contact Information
-  //             </label>
-  //             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-  //               <div className="flex items-center space-x-2">
-  //                 <Phone size={20} className="text-gray-400" />
-  //                 <input
-  //                   type="text"
-  //                   defaultValue={settings.phone}
-  //                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
-  //                 />
-  //               </div>
-  //               <div className="flex items-center space-x-2">
-  //                 <Mail size={20} className="text-gray-400" />
-  //                 <input
-  //                   type="email"
-  //                   defaultValue={settings.email}
-  //                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
-  //                 />
-  //               </div>
-  //             </div>
-  //           </div>
-  //         </div>
-  //       )}
+  const onAddItem = (newItem: MenuItem) => {
+    setMenuItemsList((prevItems) => [
+      ...prevItems,
+      { ...newItem, id: Math.random() },
+    ]);
+  };
 
-  //       {activeSettingsSection === 'offers' && (
-  //         <div className="space-y-6">
-  //           {settings.offers.map((offer, index) => (
-  //             <div key={index} className="p-4 border rounded-lg">
-  //               <div className="flex justify-between items-start mb-4">
-  //                 <h3 className="font-semibold">{offer.title}</h3>
-  //                 <button className="text-red-600 hover:bg-red-50 p-2 rounded">
-  //                   <X size={18} />
-  //                 </button>
-  //               </div>
-  //               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-  //                 <div>
-  //                   <label className="block text-sm font-medium text-gray-700 mb-1">
-  //                     Description
-  //                   </label>
-  //                   <textarea
-  //                     defaultValue={offer.description}
-  //                     rows={2}
-  //                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
-  //                   />
-  //                 </div>
-  //                 <div>
-  //                   <label className="block text-sm font-medium text-gray-700 mb-1">
-  //                     Valid Until
-  //                   </label>
-  //                   <input
-  //                     type="date"
-  //                     defaultValue={offer.validUntil}
-  //                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
-  //                   />
-  //                 </div>
-  //               </div>
-  //             </div>
-  //           ))}
-  //           <button className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-red-500 hover:text-red-500 transition-colors">
-  //             Add New Offer
-  //           </button>
-  //         </div>
-  //       )}
-
-  //       {activeSettingsSection === 'locations' && (
-  //         <div className="space-y-6">
-  //           {settings.locations.map((location, index) => (
-  //             <div key={index} className="p-4 border rounded-lg">
-  //               <div className="flex justify-between items-start mb-4">
-  //                 <h3 className="font-semibold">{location.name}</h3>
-  //                 <button className="text-red-600 hover:bg-red-50 p-2 rounded">
-  //                   <X size={18} />
-  //                 </button>
-  //               </div>
-  //               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-  //                 <div>
-  //                   <label className="block text-sm font-medium text-gray-700 mb-1">
-  //                     Address
-  //                   </label>
-  //                   <textarea
-  //                     defaultValue={location.address}
-  //                     rows={2}
-  //                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
-  //                   />
-  //                 </div>
-  //                 <div>
-  //                   <label className="block text-sm font-medium text-gray-700 mb-1">
-  //                     Phone
-  //                   </label>
-  //                   <input
-  //                     type="text"
-  //                     defaultValue={location.phone}
-  //                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
-  //                   />
-  //                 </div>
-  //               </div>
-  //             </div>
-  //           ))}
-  //           <button className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-red-500 hover:text-red-500 transition-colors">
-  //             Add New Location
-  //           </button>
-  //         </div>
-  //       )}
-
-  //       {activeSettingsSection === 'links' && (
-  //         <div className="space-y-6">
-  //           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-  //             <div className="flex items-center space-x-2">
-  //               <Facebook size={20} className="text-blue-600" />
-  //               <input
-  //                 type="text"
-  //                 defaultValue={settings.socialLinks.facebook}
-  //                 placeholder="Facebook URL"
-  //                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
-  //               />
-  //             </div>
-  //             <div className="flex items-center space-x-2">
-  //               <Instagram size={20} className="text-pink-600" />
-  //               <input
-  //                 type="text"
-  //                 defaultValue={settings.socialLinks.instagram}
-  //                 placeholder="Instagram URL"
-  //                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
-  //               />
-  //             </div>
-  //             <div className="flex items-center space-x-2">
-  //               <Twitter size={20} className="text-blue-400" />
-  //               <input
-  //                 type="text"
-  //                 defaultValue={settings.socialLinks.twitter}
-  //                 placeholder="Twitter URL"
-  //                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
-  //               />
-  //             </div>
-  //             <div className="flex items-center space-x-2">
-  //               <Globe size={20} className="text-gray-600" />
-  //               <input
-  //                 type="text"
-  //                 defaultValue={settings.socialLinks.website}
-  //                 placeholder="Website URL"
-  //                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
-  //               />
-  //             </div>
-  //           </div>
-  //         </div>
-  //       )}
-
-  //       <div className="mt-6 flex justify-end">
-  //         <button
-  //           onClick={() => onUpdateSettings?.(settings)}
-  //           className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
-  //         >
-  //           Save Changes
-  //         </button>
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
+  const onUpdateItem = (id: number, updatedItem: MenuItem) => {
+    setMenuItemsList((prevItems) =>
+      prevItems.reduce<MenuItem[]>((acc, item) => {
+        if (item.id === id) {
+          acc.push({ ...item, ...updatedItem });
+        } else {
+          acc.push(item);
+        }
+        return acc;
+      }, [])
+    );
+  };
+  const editItem=(item:MenuItem)=>{
+    console.log("hEREE")
+    
+    setSelectedItem(item);
+    setIsEditing(true);
+    console.log("hEREE",selectedItem)
+  }
+  const deleteItem=(id:any)=>{
+    const updatedMenusItems= menuItems.filter(m=>m.id!==id);
+    setMenuItemsList(updatedMenusItems);
+  }
+  const addAllergen=()=>{
+  }
+  const addIngredients=()=>{}
   return (
     <div>
       <h2 className="text-2xl sm:text-3xl font-bold mb-6">Admin Dashboard</h2>
@@ -835,6 +628,18 @@ const AdminPage: React.FC<AdminPageProps> = ({
         {activeTab === 'allergens' && renderAllergens()}
         {activeTab === 'settings' && renderSettings()}
       </div>
+      <ItemFormModal 
+        isOpen={isEditing}
+        onClose={() => setIsEditing(false)}
+        selectedItem={selectedItem}
+        onSave={(item: MenuItem) => {
+          if (selectedItem) {
+            onUpdateItem(selectedItem.id, item);
+          } else {
+            onAddItem(item);
+          }
+        }}
+      />
     </div>
   );
 };
