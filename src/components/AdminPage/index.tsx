@@ -149,7 +149,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
   );
 
   const renderTabs = () => (
-    <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
+    <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6 overflow-x-auto">
       <button
         onClick={() => setActiveTab('menu')}
         className={`flex items-center px-4 py-2 rounded-md ${
@@ -243,7 +243,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
   const renderSettings = () => (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <div className="flex space-x-4">
+        <div className="flex space-x-4  overflow-x-auto">
           <button
             onClick={() => setActiveSettingsSection('general')}
             className={`px-4 py-2 rounded-lg ${
@@ -524,9 +524,12 @@ const AdminPage: React.FC<AdminPageProps> = ({
           'Search ingredients...'
         )}
         <div className="flex-shrink-0">
-          <button onClick={()=>addIngredients()} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center">
+          <button onClick={()=>addIngredients()} className="hidden bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors sm:flex items-center">
             <Plus size={20} className="mr-2" />
             Add Ingredient
+          </button>
+          <button onClick={()=>addIngredients()} title='Add Ingredient' className="sm:hidden bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center">
+            <Plus size={20} className="" />
           </button>
         </div>
       </div>
@@ -555,9 +558,12 @@ const AdminPage: React.FC<AdminPageProps> = ({
           'Search allergens...'
         )}
         <div className="flex-shrink-0">
-          <button onClick={()=>addAllergen()} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center">
+          <button onClick={()=>addAllergen()} className="hidden bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors sm:flex items-center">
             <Plus size={20} className="mr-2" />
             Add Allergen
+          </button>
+          <button onClick={()=>addAllergen()} className="sm:hidden bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center">
+            <Plus size={20} className="" />
           </button>
         </div>
       </div>
