@@ -9,6 +9,12 @@ interface ImportModalProps {
   onImport: (settings: Partial<RestaurantSettings>) => void;
 }
 
+interface MultiItemToggles {
+  [key: string]: {
+    [itemId: string]: boolean;
+  };
+}
+
 const ImportModal: React.FC<ImportModalProps> = ({
   isOpen,
   onClose,
@@ -29,6 +35,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
     offers: false,
     locations: false
   });
+  const [multiItemToggles, setMultiItemToggles] = useState<MultiItemToggles>({});
   const [error, setError] = useState<string | null>(null);
 
   const handleImportCode = () => {
@@ -37,7 +44,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
       setImportedSettings(decoded);
       setError(null);
       
-      // Initialize toggles with keys from RestaurantSettings
+      // Initialize toggles
       const initialToggles: Record<keyof RestaurantSettings, boolean> = {
         name: false,
         description: false,
@@ -51,6 +58,22 @@ const ImportModal: React.FC<ImportModalProps> = ({
         locations: false
       };
       setToggleStates(initialToggles);
+
+      // Initialize multi-item toggles
+      const initialMultiToggles: MultiItemToggles = {};
+      if (decoded.offers) {
+        initialMultiToggles.offers = {};
+        decoded.offers.forEach((offer: any) => {
+          initialMultiToggles.offers[offer.id] = false;
+        });
+      }
+      if (decoded.locations) {
+        initialMultiToggles.locations = {};
+        decoded.locations.forEach((location: any) => {
+          initialMultiToggles.locations[location.id] = false;
+        });
+      }
+      setMultiItemToggles(initialMultiToggles);
     } catch (e) {
       setError('Invalid import code. Please check and try again.');
       setImportedSettings(null);
@@ -64,25 +87,41 @@ const ImportModal: React.FC<ImportModalProps> = ({
     }));
   };
 
+  const handleMultiItemToggle = (field: string, itemId: string) => {
+    setMultiItemToggles(prev => ({
+      ...prev,
+      [field]: {
+        ...prev[field],
+        [itemId]: !prev[field]?.[itemId]
+      }
+    }));
+  };
+
   const handleSaveChanges = () => {
     if (!importedSettings) return;
 
-    // const selectedChanges: Partial<RestaurantSettings> = Object.keys(toggleStates)
-    // .filter((key) => toggleStates[key as keyof typeof toggleStates]) // Ensure key is valid in toggleStates
-    // .reduce((acc, key) => {
-    //   // Ensure key is valid in both toggleStates and importedSettings
-    //   const typedKey = key as keyof RestaurantSettings;
-    //   acc[typedKey] = importedSettings[typedKey];
-    //   return acc;
-    // }, {} as Partial<RestaurantSettings>);
     const selectedChanges = Object.keys(toggleStates).reduce((acc, key) => {
       const settingKey = key as keyof RestaurantSettings;
       if (toggleStates[settingKey]) {
-        // Only add the key-value pair if the toggle is true
-        return {
-          ...acc,
-          [settingKey]: importedSettings[settingKey]
-        };
+        if (key === 'offers' || key === 'locations') {
+          // Handle multi-item fields
+          const selectedItems = Object.entries(multiItemToggles[key] || {})
+            .filter(([_, isSelected]) => isSelected)
+            .map(([itemId]) => {
+              return importedSettings[key].find((item: any) => item.id === itemId);
+            })
+            .filter(Boolean);
+
+          return {
+            ...acc,
+            [key]: [...(currentSettings[key] || []), ...selectedItems]
+          };
+        } else {
+          return {
+            ...acc,
+            [settingKey]: importedSettings[settingKey]
+          };
+        }
       }
       return acc;
     }, {} as Partial<RestaurantSettings>);
@@ -91,27 +130,123 @@ const ImportModal: React.FC<ImportModalProps> = ({
     onClose();
   };
 
-  if (!isOpen) return null;
+  const renderValue = (value: any) => {
+    if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
+      return (
+        <div>
+          <img src={value} alt="Preview" className="w-16 h-16 object-cover rounded-lg mb-2" />
+          <span className="text-sm text-gray-600 break-all">{value}</span>
+        </div>
+      );
+    }
+    
+    if (typeof value === 'object') {
+      return (
+        <pre className="bg-gray-50 p-2 rounded text-sm overflow-x-auto">
+          {JSON.stringify(value, null, 2)}
+        </pre>
+      );
+    }
+    
+    return <span className="break-all">{value}</span>;
+  };
+
+  const renderMultiItemField = (
+    field: 'offers' | 'locations',
+    currentValue:any[],
+    importedValue: any[],
+    label: string
+  ) => {
+    const isToggled = toggleStates[field];
+    const hasChanges = JSON.stringify(currentSettings[field]) !== JSON.stringify(importedSettings?.[field]);
+
+    return (
+      <div className="border-b border-gray-200 py-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium text-gray-700">{label}</label>
+          {/* {hasChanges}
+          {hasChanges && ( */}
+            <button
+              onClick={() => handleToggle(field)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                isToggled ? 'bg-red-600' : 'bg-gray-200'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  isToggled ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          {/* )} */}
+        </div>
+        {/* {isToggled && ( */}
+          <div className="mt-4 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="text-xs text-gray-500 mb-1">Current</div>
+                {currentValue.map((item) => (
+                  <div key={item.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                    <input
+                      type="checkbox"
+                      checked={multiItemToggles[field]?.[item.id] || false}
+                      onChange={() => handleMultiItemToggle(field, item.id)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <h4 className="font-medium">{item.title || item.name}</h4>
+                      {item.description && (
+                        <p className="text-sm text-gray-600">{item.description}</p>
+                      )}
+                      {item.image && (
+                        <img src={item.image} alt="" className="mt-2 w-20 h-20 object-cover rounded" />
+                      )}
+                    </div>
+                  </div>
+                ))}
+                </div>
+                <div className={`p-3 rounded-lg ${hasChanges ? 'bg-yellow-50' : 'bg-gray-50'}`}>
+                <div className="text-xs text-gray-500 mb-1">Imported</div>
+                {(hasChanges ? importedValue : currentValue).map((item) => (
+                  <div key={item.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                    <input
+                      type="checkbox"
+                      checked={multiItemToggles[field]?.[item.id] || false}
+                      onChange={() => handleMultiItemToggle(field, item.id)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <h4 className="font-medium">{item.title || item.name}</h4>
+                      {item.description && (
+                        <p className="text-sm text-gray-600">{item.description}</p>
+                      )}
+                      {item.image && (
+                        <img src={item.image} alt="" className="mt-2 w-20 h-20 object-cover rounded" />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              </div>
+
+            </div>
+        {/* )} */}
+      </div>
+    );
+  };
 
   const renderComparisonField = (
     field: keyof RestaurantSettings,
     label: string,
-    currentValue: RestaurantSettings[keyof RestaurantSettings],
-    importedValue: RestaurantSettings[keyof RestaurantSettings]
-  ) => {  
+    currentValue: any,
+    importedValue: any
+  ) => {
+    if (field === 'offers' || field === 'locations') {
+      return renderMultiItemField(field, currentValue,importedValue, label);
+    }
+
     const isToggled = toggleStates[field];
     const hasChange = JSON.stringify(currentValue) !== JSON.stringify(importedValue);
-
-    const renderValue = (value: any) => {
-      if (typeof value === 'object') {
-        return (
-          <pre className="bg-gray-50 p-2 rounded text-sm overflow-x-auto">
-            {JSON.stringify(value, null, 2)}
-          </pre>
-        );
-      }
-      return <span className="break-all">{value}</span>;
-    };
 
     return (
       <div className="border-b border-gray-200 py-4">
@@ -139,12 +274,14 @@ const ImportModal: React.FC<ImportModalProps> = ({
           </div>
           <div className={`p-3 rounded-lg ${hasChange ? 'bg-yellow-50' : 'bg-gray-50'}`}>
             <div className="text-xs text-gray-500 mb-1">Imported</div>
-            {renderValue(importedValue)}
+            {isToggled?renderValue(currentValue):renderValue(importedValue)}
           </div>
         </div>
       </div>
     );
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
