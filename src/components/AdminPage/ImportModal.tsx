@@ -40,8 +40,17 @@ const ImportModal: React.FC<ImportModalProps> = ({
 
   const handleImportCode = () => {
     try {
-      const decoded = JSON.parse(atob(importCode));
-      setImportedSettings(decoded);
+      // const decoded = JSON.parse(atob(importCode));
+      // setImportedSettings(decoded);
+      let parsedSettings;
+      try {
+        const decoded = atob(importCode);
+        parsedSettings = JSON.parse(decoded); // Attempt to parse as Base64-encoded JSON
+      } catch {
+        // If decoding fails, treat it as plain JSON
+        parsedSettings = JSON.parse(importCode);
+      }
+      setImportedSettings(parsedSettings)
       setError(null);
       
       // Initialize toggles
@@ -61,15 +70,15 @@ const ImportModal: React.FC<ImportModalProps> = ({
 
       // Initialize multi-item toggles
       const initialMultiToggles: MultiItemToggles = {};
-      if (decoded.offers) {
+      if (parsedSettings.offers) {
         initialMultiToggles.offers = {};
-        decoded.offers.forEach((offer: any) => {
+        parsedSettings.offers.forEach((offer: any) => {
           initialMultiToggles.offers[offer.id] = false;
         });
       }
-      if (decoded.locations) {
+      if (parsedSettings.locations) {
         initialMultiToggles.locations = {};
-        decoded.locations.forEach((location: any) => {
+        parsedSettings.locations.forEach((location: any) => {
           initialMultiToggles.locations[location.id] = false;
         });
       }
