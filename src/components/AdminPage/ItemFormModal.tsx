@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Upload, X } from 'lucide-react';
 import { MenuItem } from '../../types';
+import AutocompleteWithChips from '../AutocompleteWithChips';
 
 interface ItemFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedItem: MenuItem | null;
   onSave: (item: MenuItem) => void;
+  ingredientsList:any[];
+  allergensList:any[];
 }
 
 interface FormData {
@@ -22,6 +25,8 @@ const ItemFormModal: React.FC<ItemFormModalProps> = ({
   isOpen, 
   onClose, 
   selectedItem, 
+  ingredientsList,
+  allergensList,
   onSave 
 }) => {
   const [formData, setFormData] = useState<FormData>({
@@ -66,11 +71,22 @@ const ItemFormModal: React.FC<ItemFormModalProps> = ({
         image: '',
         category: ''
     };
-    
+
     onSave(newItem);
     onClose();
   };
-
+  const changeIngredients=(ingredients:string[])=>{
+    setFormData(prev=> {
+      const form={...prev,ingredients:ingredients.join(',')}
+      return form;
+    })
+  }
+  const changeAllergens=(allergens:string[])=>{
+    setFormData(prev=> {
+      const form={...prev,allergens:allergens.join(',')}
+      return form;
+    })
+  }
   if (!isOpen) return null;
 
   return (
@@ -145,26 +161,30 @@ const ItemFormModal: React.FC<ItemFormModalProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Ingredients (comma-separated)
                 </label>
-                <input
+                <AutocompleteWithChips options={ingredientsList} placeholder='Select Ingredients' onSelectedItemsChange={changeIngredients}/>
+                {/* <input
                   type="text"
                   name="ingredients"
                   value={formData.ingredients}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                />
+                /> */}
+                {/* {formData.allergens} */}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Allergens (comma-separated)
                 </label>
-                <input
+                <AutocompleteWithChips options={allergensList} placeholder='Select Ingredients' onSelectedItemsChange={changeAllergens}/>
+
+                {/* <input
                   type="text"
                   name="allergens"
                   value={formData.allergens}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                />
+                /> */}
               </div>
 
               <div className="flex justify-end gap-4 pt-4 border-t">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { X, Check, AlertCircle } from 'lucide-react';
 import { RestaurantSettings } from '../../types';
 
@@ -89,14 +89,14 @@ const ImportModal: React.FC<ImportModalProps> = ({
     }
   };
 
-  const handleToggle = (field: keyof RestaurantSettings) => {
+  const handleToggle = useCallback((field: keyof RestaurantSettings) => {
     setToggleStates(prev => ({
       ...prev,
       [field]: !prev[field]
     }));
-  };
-
-  const handleMultiItemToggle = (field: string, itemId: string) => {
+  }, []);
+  
+  const handleMultiItemToggle = useCallback((field: string, itemId: string) => {
     setMultiItemToggles(prev => ({
       ...prev,
       [field]: {
@@ -104,7 +104,8 @@ const ImportModal: React.FC<ImportModalProps> = ({
         [itemId]: !prev[field]?.[itemId]
       }
     }));
-  };
+  }, []);
+  
 
   const handleSaveChanges = () => {
     if (!importedSettings) return;

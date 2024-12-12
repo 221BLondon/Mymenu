@@ -25,7 +25,9 @@ export interface MenuItem {
     total: number;
     date: Date;
   }
-  
+  export interface RestaurantOpenHours{
+    [key: string]: { open: string; close: string };
+  }
   export interface RestaurantSettings {
     name: string;
     description: string;
@@ -33,28 +35,28 @@ export interface MenuItem {
     phone: string;
     email: string;
     address: string;
-    openingHours: {
-      [key: string]: { open: string; close: string };
-    };
+    openingHours:RestaurantOpenHours;
     socialLinks: {
       facebook?: string;
       instagram?: string;
       twitter?: string;
       website?: string;
     };
-    offers: {
+    offers:RestaurantOffer[];
+    locations:RestaurantLocation[];
+  }
+  interface RestaurantOffer{
       id: string;
       title: string;
       description: string;
       validUntil: string;
       image?: string;
       code?: string;
-    }[];
-    locations: {
-      id: string;
-      name: string;
-      address: string;
-      phone: string;
-      coordinates: { lat: number; lng: number };
-    }[];
   }
+  interface RestaurantLocation{
+    id: string;
+    name: string;
+    address: string;
+    phone: string;
+    coordinates: { lat: number; lng: number };
+}

@@ -638,6 +638,8 @@ const AdminPage: React.FC<AdminPageProps> = ({
         isOpen={isEditing}
         onClose={() => setIsEditing(false)}
         selectedItem={selectedItem}
+        ingredientsList={allIngredients}
+        allergensList={allAllergens}
         onSave={(item: MenuItem) => {
           if (selectedItem) {
             onUpdateItem(selectedItem.id, item);

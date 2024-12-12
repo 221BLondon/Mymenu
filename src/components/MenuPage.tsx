@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { MenuItem } from '../App';
 import { ChevronDown, Search, X, Flame } from 'lucide-react';
 import MenuModal from './MenuModal';
 import MenuCard from './MenuCard';
+import { MenuItem } from '../types';
 
 interface MenuPageProps {
   addToCart: (item: MenuItem, quantity: number, comment?: string) => void;
